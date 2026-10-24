@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Pengaduan;
 use App\Models\Kategori;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class PengaduanController extends Controller
 {
@@ -13,7 +14,14 @@ class PengaduanController extends Controller
      */
     public function index()
     {
-        $pengaduans = Pengaduan::all();
+        $query = Pengaduan::query();
+
+        if (! auth()->user()->can('pengaduan.view.all')) {
+            $query->where('email', auth()->user()->email);
+        }
+
+        $pengaduans = $query->latest()->get();
+
         return view('pengaduans.index', compact('pengaduans'));
     }
 
@@ -46,7 +54,7 @@ class PengaduanController extends Controller
         $data['email'] = $request->user()->email;
 
         if ($request->hasFile('upload_file')) {
-            $data['upload_file'] = $request->file('upload_file')->store('pengaduans', 'public');
+            $data['upload_file'] = $request->file('upload_file')->store('pengaduans');
         }
 
         Pengaduan::create($data);
@@ -65,7 +73,26 @@ class PengaduanController extends Controller
 
     public function photos(Pengaduan $pengaduan)
     {
+        $this->authorizePengaduanAccess($pengaduan);
+
         return view('pengaduans.photos', compact('pengaduan'));
+    }
+
+    public function file(Pengaduan $pengaduan)
+    {
+        $this->authorizePengaduanAccess($pengaduan);
+
+        abort_if(blank($pengaduan->upload_file), 404);
+
+        $disk = Storage::disk('local');
+
+        if (! $disk->exists($pengaduan->upload_file)) {
+            $disk = Storage::disk('public');
+        }
+
+        abort_unless($disk->exists($pengaduan->upload_file), 404);
+
+        return $disk->response($pengaduan->upload_file);
     }
 
     /**
@@ -73,6 +100,8 @@ class PengaduanController extends Controller
      */
     public function edit(Pengaduan $pengaduan)
     {
+        $this->authorizePengaduanAccess($pengaduan);
+
         $kategoris = Kategori::query()->orderBy('nama')->get();
 
         return view('pengaduans.edit', compact('pengaduan', 'kategoris'));
@@ -83,6 +112,8 @@ class PengaduanController extends Controller
      */
     public function update(Request $request, Pengaduan $pengaduan)
     {
+        $this->authorizePengaduanAccess($pengaduan);
+
         $data = $request->validate([
             'kategori' => 'required|string|exists:kategoris,nama',
             'upload_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
@@ -94,7 +125,7 @@ class PengaduanController extends Controller
         ]);
 
         if ($request->hasFile('upload_file')) {
-            $data['upload_file'] = $request->file('upload_file')->store('pengaduans', 'public');
+            $data['upload_file'] = $request->file('upload_file')->store('pengaduans');
         } else {
             unset($data['upload_file']);
         }
@@ -110,9 +141,20 @@ class PengaduanController extends Controller
      */
     public function destroy(Pengaduan $pengaduan)
     {
+        abort_unless(auth()->user()->can('pengaduan.delete'), 403);
+
         $pengaduan->delete();
 
         return redirect()->route('pengaduans.index')
             ->with('success', 'Pengaduan berhasil dihapus.');
+    }
+
+    private function authorizePengaduanAccess(Pengaduan $pengaduan): void
+    {
+        abort_unless(
+            auth()->user()->can('pengaduan.view.all')
+                || $pengaduan->email === auth()->user()->email,
+            403
+        );
     }
 }

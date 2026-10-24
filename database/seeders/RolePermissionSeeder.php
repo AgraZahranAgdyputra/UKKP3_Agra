@@ -3,28 +3,52 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class RolePermissionSeeder extends Seeder
 {
-    public function run()
+    public function run(): void
     {
-        // hapus cache permission
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        app(\Spatie\Permission\PermissionRegistrar::class)
+            ->forgetCachedPermissions();
 
-        // bikin permission
-        Permission::create(['name' => 'view posts']);
-        Permission::create(['name' => 'create posts']);
-        Permission::create(['name' => 'edit posts']);
-        Permission::create(['name' => 'delete posts']);
+        $permissionNames = [
+            'pengaduan.view',
+            'pengaduan.view.all',
+            'pengaduan.create',
+            'pengaduan.update',
+            'pengaduan.delete',
+            'kategori.manage',
+            'user.manage',
+            'dashboard.view',
+        ];
 
-        // bikin role
-        $admin = Role::create(['name' => 'admin']);
-        $customer = Role::create(['name' => 'customer']);
+        $permissions = collect($permissionNames)->map(
+            fn (string $name) => Permission::firstOrCreate([
+                'name' => $name,
+                'guard_name' => 'web',
+            ])
+        );
 
-        // kasih permission ke role
-        $admin->givePermissionTo(Permission::all());
-        $customer->givePermissionTo(['view posts', 'create posts', 'edit posts']);
+        $admin = Role::firstOrCreate([
+            'name' => 'admin',
+            'guard_name' => 'web',
+        ]);
+
+        $customer = Role::firstOrCreate([
+            'name' => 'customer',
+            'guard_name' => 'web',
+        ]);
+
+        $admin->syncPermissions($permissions);
+        $customer->syncPermissions([
+            'pengaduan.view',
+            'pengaduan.create',
+            'pengaduan.update',
+        ]);
+
+        app(\Spatie\Permission\PermissionRegistrar::class)
+            ->forgetCachedPermissions();
     }
 }

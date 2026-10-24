@@ -19,7 +19,7 @@
 
                 @if ($pengaduan->upload_file)
                     @php
-                        $fileUrl = url('/storage/'.$pengaduan->upload_file);
+                        $fileUrl = route('pengaduans.file', $pengaduan);
                         $extension = strtolower(pathinfo($pengaduan->upload_file, PATHINFO_EXTENSION));
                     @endphp
 

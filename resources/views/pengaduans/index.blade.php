@@ -9,10 +9,12 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="mb-6 flex items-center justify-between">
                 <p class="text-gray-600">Daftar pengaduan yang telah masuk.</p>
-                <a href="{{ route('pengaduans.create') }}"
-                   class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500">
-                    Tambah Pengaduan
-                </a>
+                @can('pengaduan.create')
+                    <a href="{{ route('pengaduans.create') }}"
+                       class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500">
+                        Tambah Pengaduan
+                    </a>
+                @endcan
             </div>
 
             @if (session('success'))
@@ -43,18 +45,22 @@
                         </div>
 
                         <div class="flex items-center gap-3">
-                            <a href="{{ route('pengaduans.edit', $pengaduan) }}"
-                               class="text-sm font-medium text-indigo-600 hover:text-indigo-800">
-                                Edit
-                            </a>
-                            <form method="POST" action="{{ route('pengaduans.destroy', $pengaduan) }}"
-                                  onsubmit="return confirm('Hapus pengaduan ini?')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="text-sm font-medium text-red-600 hover:text-red-800">
-                                    Hapus
-                                </button>
-                            </form>
+                            @can('pengaduan.update')
+                                <a href="{{ route('pengaduans.edit', $pengaduan) }}"
+                                   class="text-sm font-medium text-indigo-600 hover:text-indigo-800">
+                                    Edit
+                                </a>
+                            @endcan
+                            @can('pengaduan.delete')
+                                <form method="POST" action="{{ route('pengaduans.destroy', $pengaduan) }}"
+                                      onsubmit="return confirm('Hapus pengaduan ini?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-sm font-medium text-red-600 hover:text-red-800">
+                                        Hapus
+                                    </button>
+                                </form>
+                            @endcan
                         </div>
                     </div>
                 </article>

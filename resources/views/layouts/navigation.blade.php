@@ -11,11 +11,21 @@
                 </div>
 
                 <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        {{ __('Dashboard') }}
-                    </x-nav-link>
-                </div>
+                @can('dashboard.view')
+                    <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                        <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                            {{ __('Dashboard') }}
+                        </x-nav-link>
+                    </div>
+                @endcan
+
+                @can('user.manage')
+                    <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                        <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
+                            {{ __('User') }}
+                        </x-nav-link>
+                    </div>
+                @endcan
 
                  <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     <x-nav-link :href="route('pengaduans.index')" :active="request()->routeIs('pengaduans.*')">
@@ -23,11 +33,13 @@
                     </x-nav-link>
                 </div>
 
-                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                     <x-nav-link :href="route('kategoris.index')" :active="request()->routeIs('kategoris.*')">
-                         {{ __('Kategori') }}
-                     </x-nav-link>
-                 </div>
+                @can('kategori.manage')
+                    <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                        <x-nav-link :href="route('kategoris.index')" :active="request()->routeIs('kategoris.*')">
+                            {{ __('Kategori') }}
+                        </x-nav-link>
+                    </div>
+                @endcan
             </div>
 
             <!-- Settings Dropdown -->
@@ -79,15 +91,24 @@
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                {{ __('Dashboard') }}
-            </x-responsive-nav-link>
+            @can('dashboard.view')
+                <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                    {{ __('Dashboard') }}
+                </x-responsive-nav-link>
+            @endcan
             <x-responsive-nav-link :href="route('pengaduans.index')" :active="request()->routeIs('pengaduans.*')">
                 {{ __('Pengaduan') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('kategoris.index')" :active="request()->routeIs('kategoris.*')">
-                {{ __('Kategori') }}
-            </x-responsive-nav-link>
+            @can('user.manage')
+                <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
+                    {{ __('User') }}
+                </x-responsive-nav-link>
+            @endcan
+            @can('kategori.manage')
+                <x-responsive-nav-link :href="route('kategoris.index')" :active="request()->routeIs('kategoris.*')">
+                    {{ __('Kategori') }}
+                </x-responsive-nav-link>
+            @endcan
         </div>
 
         <!-- Responsive Settings Options -->
